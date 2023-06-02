@@ -3,3 +3,4 @@
 
 Працюючі проекти:
   * DriveWriter
+  * AVR_Atmega8_differential_thermostat
