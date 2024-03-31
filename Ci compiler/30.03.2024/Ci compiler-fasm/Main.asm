@@ -7,15 +7,22 @@ section '.data' data readable writeable
 
 include 'data.inc'
 
-hello dw 'h', 'e', 'l', 'l', 'o', 0
-world dw ' ', 'w', 'o', 'r', 'l', 'd', 0
+hello dw 'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0
+world dw 'w', 'o', 'r', 'l', 'd', 0
   
 section '.text' code readable executable
 
+;proc func, param:abc
+
+;  mov eax, [param.a]
+;  mov ebx, [param.b]
+;  mov ecx, [param.c]
+
+;ret
+;endp
+
 include 'filer.inc'
-
 include 'lexer.inc'
-
 include 'string.inc'
 
 error.func:
@@ -27,7 +34,7 @@ invoke ExitProcess, 1
 
 Start:
 
-  stdcall wstradd, hello, world, 0
+  stdcall wstrfind, hello, world
 
   invoke LocalAlloc, LPTR, 20
   mov [tmpMem.pMem], eax

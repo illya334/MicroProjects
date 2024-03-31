@@ -1,5 +1,8 @@
 ; By zeq52giw 25.03.2024
 ; Цей файл це збірка функцій по обробці тексту
+; Нотатка: 
+;   Я не зберігаю стан регістрів тому, що по 10 байт в мінус з кожної функції на push та pop.
+;   Я не робив безопасні функції, наприклад можна передати нуль у функцію й ця функція спробує прочитати по адресу нуль данні, без перевірки.
 
 macro _alloc _size{
   invoke LocalAlloc, LPTR, _size
@@ -41,8 +44,8 @@ proc wstrlen uses esi, _str
 ret
 endp
 
-proc strcopy uses ebx ecx edx esi edi, _str, _buf, _bufsize
-
+proc strcopy, _str, _buf, _bufsize
+  
   cmp [_buf], 0
   je .newBuf
   
@@ -54,7 +57,7 @@ proc strcopy uses ebx ecx edx esi edi, _str, _buf, _bufsize
   
   jmp @f
   
-  .newBuf:
+  .newBuf:  
     stdcall strlen, [_str]
     inc eax
     _alloc eax
@@ -84,7 +87,7 @@ proc strcopy uses ebx ecx edx esi edi, _str, _buf, _bufsize
 ret
 endp
 
-proc wstrcopy uses ebx ecx edx esi edi, _str, _buf, _bufsize
+proc wstrcopy, _str, _buf, _bufsize
   
   cmp [_buf], 0
   je .newBuf
@@ -125,13 +128,13 @@ proc wstrcopy uses ebx ecx edx esi edi, _str, _buf, _bufsize
     jmp @b
   @@:       
 
-  mov eax, edi
-
+  mov eax, edi  
+  
 ret
 endp
                                     
-proc strcmp uses ebx esi edi, _str1, _str2
-
+proc strcmp, _str1, _str2
+  
   mov esi, [_str1]
   mov edi, [_str2]
   
@@ -169,12 +172,12 @@ proc strcmp uses ebx esi edi, _str1, _str2
     mov eax, 1
 
   .exit:
-
+  
 ret
 endp
 
-proc wstrcmp uses ebx esi edi, _str1, _str2
-
+proc wstrcmp, _str1, _str2
+  
   mov esi, [_str1]
   mov edi, [_str2]
   
@@ -212,11 +215,11 @@ proc wstrcmp uses ebx esi edi, _str1, _str2
     mov eax, 1
 
   .exit:
-
+  
 ret
 endp
 
-proc stradd uses ebx ecx edx esi edi, _str1, _str2, _buf
+proc stradd, _str1, _str2, _buf
 
   mov edi, [_buf]         ; if(_buf == 0) edi = _alloc( strlen(_str1) + strlen(_str2) + 1 )
   cmp edi, 0
@@ -260,11 +263,11 @@ proc stradd uses ebx ecx edx esi edi, _str1, _str2, _buf
   mov byte[edi+edx], 0
   
   mov eax, edi ; return [_buf]
-
+  
 ret
 endp
 
-proc wstradd uses ebx ecx edx esi edi, _str1, _str2, _buf
+proc wstradd, _str1, _str2, _buf
 
   mov edi, [_buf]         ; if(_buf == 0) edi = _alloc( strlen(_str1) + strlen(_str2) + 1 )
   cmp edi, 0
@@ -309,6 +312,92 @@ proc wstradd uses ebx ecx edx esi edi, _str1, _str2, _buf
   mov word[edi+edx*2], 0
   
   mov eax, edi ; return [_buf]
+  
+ret
+endp
 
+proc strfind, _str, _findstr
+  
+  mov esi, [_str]
+  mov edi, [_findstr]
+  xor ebx, ebx
+  mov ah, byte[edi]
+  .find:
+    mov al, byte[esi+ebx]
+    test al, al
+    jz .endStr
+    cmp al, ah
+    je .mayFind
+    inc ebx
+  jmp .find
+  
+  .mayFind:
+  xor ecx, ecx
+  push ebx
+  @@:
+    mov al, byte[esi+ebx]
+    mov ah, byte[edi+ecx]
+    test ah, ah
+    jz .endFind
+    test al, al
+    jz .endStr
+    inc ebx
+    inc ecx
+    cmp al, ah
+    je @b
+  jmp .find
+  
+  .endStr:
+    pop eax
+    mov eax, -1
+  jmp @f
+  
+  .endFind:
+    pop eax
+  @@:
+  
+ret
+endp
+
+proc wstrfind, _str, _findstr
+  
+  mov esi, [_str]
+  mov edi, [_findstr]
+  xor ebx, ebx
+  mov dx, word[edi]
+  .find:
+    mov ax, word[esi+ebx*2]
+    test ax, ax
+    jz .endStr
+    cmp ax, dx
+    je .mayFind
+    inc ebx
+  jmp .find
+  
+  .mayFind:
+  xor ecx, ecx
+  push ebx
+  @@:
+    mov ax, word[esi+ebx*2]
+    mov dx, word[edi+ecx*2]
+    test dx, dx
+    jz .endFind
+    test ax, ax
+    jz .endStr
+    inc ebx
+    inc ecx
+    cmp ax, dx
+    je @b
+  jmp .find
+  
+  .endStr:
+    pop eax
+    mov eax, -1
+  jmp @f
+  
+  .endFind:
+    pop eax
+  @@:
+  
 ret
 endp
