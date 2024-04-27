@@ -11,7 +11,7 @@ text db 'Read: %d; Text: %s',0
 tmpMem:
   .hMem dd 0
   .pMem dd 0
-  .len  dd 0
+  .len  dd 40
 
 ; filer.inc
 fileInName db 'C:\proj\testIn.txt', 0
@@ -42,21 +42,30 @@ string:
 cnt dd 0
 
 ; lexer.inc
-datatype db   'void',0,\
-              'byte',0,\
-              'word',0,\
-              'dword',0,\
-              'qword',0,\
-              'char',0,\
-              'wchar',0,\
-              'short',0,\
-              'int',0,\
-              'long',0,\
-              'float',0,\
-              'double',0,\
-              'bool',0,\
-              'file',0,0
+datatype db   'void',0,\   ; 0
+              'byte',0,\   ; 1
+              'word',0,\   ; 2
+              'dword',0,\  ; 3
+              'qword',0,\  ; 4
+              'char',0,\   ; 5
+              'wchar',0,\  ; 6
+              'short',0,\  ; 7
+              'int',0,\    ; 8
+              'long',0,\   ; 9
+              'float',0,\  ; 10
+              'double',0,\ ; 11
+              'bool',0,\   ; 12
+              'file',0,0   ; 13 ; 14 - none
 datatype.len = $ - datatype
               
 simbols db    'ABCDEFGIHJKLMNOPQRSTUVWXYZabcdefgihjklmnopqrstuwyx0123456789_',0
 simbols.len = $ - simbols
+
+; now comand data
+nowcom:
+  .type db 0
+  .datatype db 0
+  .nameAdr dd 0 ; adr
+  .valueAdr dd 0 ; adr
+  
+  

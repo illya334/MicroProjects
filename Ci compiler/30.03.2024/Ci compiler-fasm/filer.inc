@@ -2,7 +2,7 @@
 ; Used WinAPI functions:
 ; 
 
-proc openFile uses ebx ecx edx esi edi, path, fileSt
+proc openFile, path, fileSt
   
   mov eax, [path]
   mov esi, [fileSt]
@@ -19,9 +19,9 @@ proc openFile uses ebx ecx edx esi edi, path, fileSt
   invoke GetFileSize, eax, 0
   mov [esi + 4*4], eax ; [fileIn.fileSize]
   
+  inc eax
   mov ebx, eax
   
-  inc eax
   invoke LocalAlloc, LPTR, eax
   mov [esi + 4*2], eax ; [fileIn.pMem]
   mov [esi + 4*3], ebx ; [fileIn.lenMem]
@@ -32,7 +32,7 @@ proc openFile uses ebx ecx edx esi edi, path, fileSt
 ret
 endp
 
-proc readFile uses ebx ecx edx esi edi, fileSt
+proc readFile, fileSt
   
   mov esi, [fileSt]
   

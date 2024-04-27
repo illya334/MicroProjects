@@ -6,20 +6,8 @@ include 'win32a.inc'
 section '.data' data readable writeable
 
 include 'data.inc'
-
-hello dw 'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd', 0
-world dw 'w', 'o', 'r', 'l', 'd', 0
   
 section '.text' code readable executable
-
-;proc func, param:abc
-
-;  mov eax, [param.a]
-;  mov ebx, [param.b]
-;  mov ecx, [param.c]
-
-;ret
-;endp
 
 include 'filer.inc'
 include 'lexer.inc'
@@ -34,19 +22,12 @@ invoke ExitProcess, 1
 
 Start:
 
-  stdcall wstrfind, hello, world
-
-  invoke LocalAlloc, LPTR, 20
-  mov [tmpMem.pMem], eax
-  mov [tmpMem.len], 20
-  
-  invoke LocalHandle, eax
-  mov [tmpMem.hMem], eax
-
-
   stdcall openFile, fileInName, fileIn
   
   stdcall readFile, fileIn 
+  
+  _alloc 40
+  mov [tmpMem.pMem], eax
   
   stdcall lexer   
 

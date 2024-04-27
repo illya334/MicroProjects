@@ -53,19 +53,22 @@ proc strcopy, _str, _buf, _bufsize
   mov edi, [_buf]
   
   mov edx, [_bufsize]
-  dec edx
   
   jmp @f
   
+  ; edi = _alloc( strlen( _str ) )
   .newBuf:  
     stdcall strlen, [_str]
-    inc eax
+    inc eax     
     _alloc eax
     mov edi, eax
+    xor edx, edx
   @@:
   
   xor eax, eax
   xor ebx, ebx
+  
+  dec edx
   
   @@:
     mov al, byte[esi]
@@ -222,8 +225,8 @@ endp
 proc stradd, _str1, _str2, _buf
 
   mov edi, [_buf]         ; if(_buf == 0) edi = _alloc( strlen(_str1) + strlen(_str2) + 1 )
-  cmp edi, 0
-  jne @f
+  test edi, edi
+  jnz @f
     mov eax, [_str1]
     stdcall strlen, eax
     push eax
@@ -270,8 +273,8 @@ endp
 proc wstradd, _str1, _str2, _buf
 
   mov edi, [_buf]         ; if(_buf == 0) edi = _alloc( strlen(_str1) + strlen(_str2) + 1 )
-  cmp edi, 0
-  jne @f
+  test edi, edi
+  jnz @f
     mov eax, [_str1]
     stdcall wstrlen, eax
     push eax
