@@ -1,5 +1,9 @@
 ; Тут збурігаються змінні
 
+; defines
+  true equ 1
+  false equ 0
+
 ; global
 error:
   .text         db "ERROR: In function '%s', code: 0x%X (%d);", 10, 13, 0
