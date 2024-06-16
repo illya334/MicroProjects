@@ -5,7 +5,7 @@ include "Main.asm"
 if 2 * 2 = 5
 [options]
   countAsm=1
-  countInc=4
+  countInc=5
 [asm]
   asm1="Main.asm"
 [inc]
@@ -13,4 +13,5 @@ if 2 * 2 = 5
   inc2="lexer.inc"
   inc3="data.inc"
   inc4="string.inc"
+  inc5="error.inc"
 end if

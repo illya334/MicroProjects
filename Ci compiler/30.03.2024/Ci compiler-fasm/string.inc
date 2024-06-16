@@ -4,14 +4,25 @@
 ;   Я не зберігаю стан регістрів тому, що по 10 байт в мінус з кожної функції на push та pop.
 ;   Я не робив безопасні функції, наприклад можна передати нуль у функцію й ця функція спробує прочитати по адресу нуль данні, без перевірки.
 
+
+; WinAPI
 macro _alloc _size{
   invoke LocalAlloc, LPTR, _size
 }
+
+macro _realloc _pMem, _size{
+  push _size
+  invoke LocalHandle, _pMem
+  pop ecx
+  invoke LocalReAlloc, eax, ecx, LPTR
+}
+
 
 macro _free _pMem{
   invoke LocalHandle, _pMem
   invoke LocalFree, eax
 }
+; end WinAPI
 
 proc strlen uses esi, _str
   

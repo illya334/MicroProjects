@@ -12,7 +12,7 @@ proc openFile, path, fileSt
     invoke GetLastError
     mov ebx, eax
     mov eax, error.CreateFileA
-    jmp error.func
+    jmp error.winapi
   @@:
   mov [esi], eax
   
@@ -46,10 +46,18 @@ proc readFile, fileSt
     invoke GetLastError
     mov ebx, eax
     mov eax, error.ReadFile
-    jmp error.func
+    jmp error.winapi
   @@:
   
   mov eax, [cnt]
     
+ret
+endp
+
+proc closeFile, fileSt
+  
+  mov eax, [esi]
+  invoke CloseHandle, eax
+  
 ret
 endp

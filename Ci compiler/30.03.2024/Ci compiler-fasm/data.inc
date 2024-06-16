@@ -6,9 +6,13 @@
 
 ; global
 error:
-  .text         db "ERROR: In function '%s', code: 0x%X (%d);", 10, 13, 0
+  .textWinAPI   db "ERROR: In function '%s', code: 0x%X (%d);", 10, 13, 0
+  .textLexer    db "ERROR LEXER: %s", 10, 13, 0
   .CreateFileA  db 'CreateFileA', 0
   .ReadFile     db 'ReadFile', 0
+  .waitName     db 'Invalid command - name expected', 0
+    .fileEnd    db 'File ended', 0
+  .waitValue    db 'Invalid command - value expected', 0
   
 text db 'Read: %d; Text: %s',0
 
@@ -62,14 +66,33 @@ datatype db   'void',0,\   ; 0
               'file',0,0   ; 13 ; 14 - none
 datatype.len = $ - datatype
               
-simbols db    'ABCDEFGIHJKLMNOPQRSTUVWXYZabcdefgihjklmnopqrstuwyx0123456789_',0
+simbols db    'ABCDEFGIHJKLMNOPQRSTUVWXYZabcdefgihjklmnopqrstuwyx0123456789_.',0
 simbols.len = $ - simbols
 
 ; now comand data
 nowcom:
   .type db 0
   .datatype db 0
-  .nameAdr dd 0 ; adr
-  .valueAdr dd 0 ; adr
-  
-  
+  .name dd 0 ; adr
+  .value dd 0 ; adr
+
+; TMP VARs
+tmpVar:
+  .a dd 0
+
+nowLine dd 0
+
+; Виділенна пам'ять для токенів  
+pTocken dd 0 
+tockenIndex dd 0
+
+; struct stTocken{
+;   db type
+;   db datatype
+
+;   dw size name
+;   db [size] name
+
+;   dw size value
+;   db [size] value  
+; }

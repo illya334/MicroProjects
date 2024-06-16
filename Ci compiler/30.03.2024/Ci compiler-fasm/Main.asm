@@ -10,24 +10,15 @@ include 'data.inc'
 section '.text' code readable executable
 
 include 'filer.inc'
-include 'lexer.inc'
 include 'string.inc'
-
-error.func:
-; eax - name func
-; ebx - error code
-invoke printf, error.text, eax, ebx, ebx
-invoke getch
-invoke ExitProcess, 1
+include 'lexer.inc'
+include 'error.inc'
 
 Start:
 
   stdcall openFile, fileInName, fileIn
-  
-  stdcall readFile, fileIn 
-  
-  _alloc 40
-  mov [tmpMem.pMem], eax
+  stdcall readFile, fileIn
+  stdcall closeFile, fileIn 
   
   stdcall lexer   
 
