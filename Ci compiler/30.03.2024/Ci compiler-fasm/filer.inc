@@ -56,6 +56,7 @@ endp
 
 proc closeFile, fileSt
   
+  mov esi, [fileSt]
   mov eax, [esi]
   invoke CloseHandle, eax
   

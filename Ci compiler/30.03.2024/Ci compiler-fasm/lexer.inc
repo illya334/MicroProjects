@@ -1,5 +1,7 @@
 ; Цей файл перетворює код у токени
 
+; Code => Lexer => Parser => Compiler (asm)
+
 proc lexer
   ; Основна частина Lexer-a. Завдяння цієї подпрограми розбити текст на токени, переобразувати його (якщо потрібно).
   
@@ -10,9 +12,7 @@ proc lexer
   ; 
   
   ; TODO:
-  ; способ завершити обробляти блок (;)
-  ; функція створення токена ^^^
-  ; обробка функцій
+  ; обробка функцій - переробити lexer так щоб він не використовував nowcom, а щоб записував у відведену для цього пам'ять по адресі
 
   local .cmdEqu db 0
 
@@ -24,72 +24,90 @@ proc lexer
   _alloc 40
   mov [tmpMem.pMem], eax
   mov [tmpMem.len], 40
-
-  mov word[nowcom], 0     ; type, datatype
-  mov dword[nowcom+2], 0  ; name
-  mov dword[nowcom+6], 0  ; value
   
   mov [nowLine], 0
+  mov [nowCol], 0
 
-  .getWordLoop:
+  cmp dword[nowcom], 0
+  jnz @f
+    _alloc nowcom.size
+    mov [nowcom], eax
+    jmp .loopLexer
+  @@:
+  
+  mov ecx, nowcom.size
+  @@:
+    mov byte[eax], 0
+    inc eax
+  loop @b
+
+
+  .loopLexer:
+  mov eax, [fileIn.fileSize]
+  mov ebx, [fileIn.index]
+  cmp eax, ebx
+  jnb @f
+    mov eax, -1
+    jmp .exit
+  @@:
+  
+  
   mov eax, [fileIn.pMem]
   add eax, [fileIn.index]
-  stdcall getWord, eax
+  push eax
+  
+  stdcall testSimbol, [eax]
   test eax, eax
-  jz .testGetWord
-    cmp eax, -1 ; End File - Кінець файла, звільняє пам'ять та виходить з lexer
+  jnz .testSpecSimbolEnd
+    ; Перевірка на спеціальний символ
+    pop eax
+    mov al, byte[eax]
+    
+    cmp al, ' '
     jne @f
-      _free [fileIn.pMem]
-      mov eax, error.fileEnd
-      jmp error.lexer
-      jmp .exit
+      inc [fileIn.index]
+      jmp .loopLexer
     @@:
-    
-    stdcall getTypeCom, dword[.cmdEqu]
-    stdcall createTocken
-    
-    mov ecx, 1
-    
-  .testGetWord:
   
-  add [fileIn.index], ecx
+    .testSpecSimbolError:
+    mov eax, error.invalidSim
+    jmp error.lexer
   
-  stdcall testSpecSimbol
-  test edx, edx
-  jz @f
-    mov [.cmdEqu], true
-    jmp .getWordLoop
-  @@:
-  ; tmpMem - now word
+  .testSpecSimbolEnd:
   
-  ; перевірка на тип данних
   stdcall testDatatype
-    
-    test eax, eax ; it is not data type
-    jnz .itIsNotDataType
-    
-      ; копіює текст з tmpMem.pMem у створену пам'ять
-      stdcall strcopy, esi, 0, 0 ; esi - text, name, value
-      cmp byte[.cmdEqu], true
-      jne @f
-        mov [nowcom.value], eax
-        mov byte[.cmdEqu], false
-        jmp .endDatatypeTest
-      @@:
-      
-      ; НЕ є ніодною командою, значить це ім'я
-      mov [nowcom.name], eax
-      jmp .endDatatypeTest
-    .itIsNotDataType:
-                             
-    mov [nowcom.datatype], cl
-    
-  .endDatatypeTest:
-  jmp .getWordLoop
+  
   
   .exit:
   
-ret 4
+ret
+endp
+
+proc testSimbol, _simbol
+  
+  ; перевіряє символ чи належить він до алфавіту
+  
+  ; In:
+  ; _simbol (byte - char) - символ який перевіряється
+  
+  ; Out:
+  ; eax - true/false - чи пройшла перевірку?
+  
+  xor eax, eax
+  mov bl, byte[_simbol]
+  mov ecx, simbols.len
+  
+  .loopTestSimbol:
+    cmp bl, byte[simbols + ecx]
+    jne @f
+      mov eax, true
+      jmp .endLoopTestSimbol
+    @@:
+  loop .loopTestSimbol
+  .endLoopTestSimbol:
+  
+  ; return eax (bool)
+ret
 endp
 
 proc getWord, _str
@@ -105,81 +123,12 @@ proc getWord, _str
   ; ECX - offset _str
   ; [tmpMem.pMem] - output string
   
-  push [_str]
+  local .endAdres dd 0
   
   ; обраховує кінцесу адресу, щоб не вийти за розміри пам'яті.
   mov eax, [tmpMem.len]
   add eax, [tmpMem.pMem]
-  mov [tmpVar.a], eax
-  
-  mov ebx, [_str]
-  
-  mov al, byte[ebx]
-  
-  test al, al
-  jnz @f
-    mov eax, -1
-    jmp .exit
-  @@:
-  
-  cmp al, ';'
-  jne @f
-    mov eax, ';'
-    jmp .exit
-  @@:
-  cmp al, ','
-  jne @f
-    mov eax, ','
-    jmp .exit
-  @@:
-  
-  cmp byte[ebx], 13
-  je .nextLine
-  cmp byte[ebx], 10
-  je .nextLine
-  
-  jmp .nextLineEnd
-  .nextLine:
-    cmp word[ebx], 0D0Ah
-    jne @f
-      mov eax, [_str]
-      add eax, 2
-      mov [_str], eax
-      inc [nowLine]
-    @@:
-    
-    cmp byte[ebx], 13
-    je @f
-    cmp byte[ebx], 10
-    je @f
-    
-    jmp .nextLineEnd
-    @@:
-      inc [_str]
-      inc [nowLine]
-    
-  .nextLineEnd:
-  
-  cmp byte[ebx], ' '
-  jne .endSpace
-    
-    mov ebx, [_str]
-    
-    .spaceLoop:
-    cmp byte[ebx], 0
-    jne @f
-      mov eax, -1
-      jmp .exit
-    @@:
-    
-    inc ebx
-    
-    cmp byte[ebx], ' '
-    je .spaceLoop
-    
-    mov [_str], ebx
-    
-  .endSpace:
+  mov [.endAdres], eax
   
   xor eax, eax
   mov ebx, [_str]
@@ -207,11 +156,11 @@ proc getWord, _str
   ; переповнення пам'яті, перевиділяє пам'ять - збільшує її розмір на 20 байт,
   ; перераховує кінцеву адресу, та оновлює регістр і змінні 
   @@:
-  cmp edi, [tmpVar.a]
+  cmp edi, [.endAdres]
   jb @f
     pushad
+    add [tmpMem.len], 20
     mov eax, [tmpMem.len]
-    add eax, 20
     
     mov ebx, eax
     mov ecx, [tmpMem.pMem]
@@ -220,7 +169,7 @@ proc getWord, _str
     mov [tmpMem.pMem], eax
     
     add ebx, [tmpMem.pMem]
-    mov [tmpVar.a], ebx
+    mov [.endAdres], ebx
     
     popad
     mov edi, [tmpMem.pMem]
@@ -238,43 +187,7 @@ proc getWord, _str
   .getWordLoopEnd:
     xor eax, eax
   .exit:
-  pop ebx
-  add ecx, [_str]
-  sub ecx, ebx
   
-ret
-endp
-
-proc testSpecSimbol
-  ; In:
-  ; [fileIn.pMem] - input string from 'getWord'
-  
-  ; Out:
-  ; EDX - bool '=' - знак 'дорівнює' вказує, що тепер потрібно записати рядок у [nowcom.valueAdr]
-
-  xor edx, edx
-  cmp ecx, 0
-  jne .cmdSpecSimbol
-    ; getSimbol
-    mov ebx, [fileIn.index]
-    mov esi, [fileIn.pMem]
-    mov al, byte[esi+ebx]
-    
-    cmp al, ' '
-    jne @f
-      inc [fileIn.index]
-    @@:
-    
-    cmp al, '='
-    jne @f
-      mov edx, true                     
-      inc [fileIn.index]
-      jmp .cmdSpecSimbol
-    @@:
-    
-    add esp, 4 ; clear stack
-    jmp lexer.getWordLoop
-  .cmdSpecSimbol:
 ret
 endp
 
@@ -307,21 +220,42 @@ ret
 endp
 
 proc getTypeCom, _equ
+  mov ebx, [nowcom]
+  
+  cmp byte[ebx + nowcom.type], 0 ; nowcom.type
+  jnz .exit
 
-  cmp [nowcom.name], 0
+  cmp dword[ebx + nowcom.name], 0 ; nowcom.name
   jne @f
     mov eax, error.waitName
     jmp error.lexer
   @@:
   
-  mov al, byte[_equ]
-  cmp al, true
+  cmp byte[_equ], true
   jne @f
-    cmp [nowcom.value], 0
+    cmp dword[ebx + nowcom.value], 0 ; nowcom.value
     jne @f
       mov eax, error.waitValue
       jmp error.lexer
   @@:
+
+  
+  cmp byte[ebx + nowcom.datatype], 0 ; nowcom.datatype
+  jz .exit
+    cmp dword[ebx + nowcom.name], 0 ; nowcom.name
+    jnz @f
+      mov eax, error.waitName
+      jmp error.lexer
+    @@:
+    
+    cmp dword[ebx + nowcom.value], 0 ; nowcom.value
+    jz @f
+      mov byte[ebx + nowcom.type], 2 ; nowcom.type
+      jmp .exit
+    @@:
+    
+    mov byte[ebx + nowcom.type], 1 ; nowcom.type
+  .exit:
 
 ret
 endp
@@ -336,8 +270,16 @@ proc createTocken
   
   ; Out:
   ; struct pTocken
+  xor eax, eax
+  xor ecx, ecx
+  mov ebx, [nowcom]
+  mov al, byte[ebx + nowcom.type] ; nowcom.type
+  mov cl, byte[ebx + nowcom.datatype] ; nowcom.datatype
+  mov esi, [ebx + nowcom.name]
+  mov edi, [ebx + nowcom.value]
 
-
+  invoke printf, tockenText, eax, ecx, esi, edi
+  invoke getch
 
 ret
 endp

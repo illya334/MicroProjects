@@ -22,7 +22,7 @@ Start:
   
   stdcall lexer   
 
-  invoke printf, text, eax, [fileIn.pMem] 
+  ;invoke printf, text, eax, [fileIn.pMem] 
   invoke getch
 
 Exit:
