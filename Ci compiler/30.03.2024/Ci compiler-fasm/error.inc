@@ -1,3 +1,5 @@
+; By zeq52giw 30.03.2024
+
 error.winapi:
 ; eax - name func
 ; ebx - error code

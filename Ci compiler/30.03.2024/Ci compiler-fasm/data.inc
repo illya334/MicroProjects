@@ -1,4 +1,6 @@
-; Тут збурігаються змінні
+; By zeq52giw 25.03.2024
+
+; Тут зберігаються змінні
 
 ; defines
   true equ 1
@@ -14,7 +16,7 @@ error:
     .fileEnd    db 'File ended', 0
   .waitValue    db 'Invalid command - value expected', 0
   .invalidSim   db 'Invalid simbol', 0
-  
+
 text db 'Read: %d; Text: %s',0
 
 tmpMem:
@@ -26,22 +28,8 @@ tmpMem:
 fileInName db 'C:\proj\testIn.txt', 0
 fileOutName db '', 0
 
-fileIn:
-  .hFile    dd 0 ; 0
-  .hMem     dd 0 ; 1 Handle memory
-  .pMem     dd 0 ; 2 Point on memory
-  .lenMem   dd 0 ; 3
-  .fileSize dd 0 ; 4 
-  .index    dd 0 ; 5
+fileIn stFile
 
-fileOut:
-  .hFile    dd 0
-  .hMem     dd 0
-  .pMem     dd 0
-  .lenMem   dd 0
-  .fileSize dd 0
-  .index    dd 0  
-                                        
 string:
   .nl db 10, 13, 0
   .d db '%d', 0
@@ -66,8 +54,8 @@ datatype db   'void',0,\   ; 1 ; 0 - none
               'bool',0,\   ; 13
               'file',0,0   ; 14 ; 15 - none
 datatype.len = $ - datatype
-              
-simbols db    'ABCDEFGIHJKLMNOPQRSTUVWXYZabcdefgihjklmnopqrstuvwyx0123456789_.',0
+
+simbols db    'ABCDEFGIHJKLMNOPQRSTUVWXYZabcdefgihjklmnopqrstuvwyx0123456789_',0
 simbols.len = $ - simbols
 
 ; now comand data
@@ -92,8 +80,8 @@ nowcom.size = 14
 nowLine dd 0
 nowCol dd 0
 
-; Виділенна пам'ять для токенів  
-pTocken dd 0 
+; Виділенна пам'ять для токенів
+pTocken dd 0
 tockenIndex dd 0
 
 tockenText db 'Tocken = { type: %d; datatype: %d; name: "%s"; value: "%s"; }', 10, 13, 0
@@ -106,5 +94,5 @@ tockenText db 'Tocken = { type: %d; datatype: %d; name: "%s"; value: "%s"; }', 1
 ;   db [size] name
 
 ;   dw size value
-;   db [size] value  
+;   db [size] value
 ; }
