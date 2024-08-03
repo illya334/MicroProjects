@@ -1,3 +1,9 @@
+;    /  -----------  \
+;  /      zeq52giw     \
+; <   ---------------   >
+;  \                  /
+;    \  -----------  /
+
 ; By zeq52giw 25.03.2024
 
 ; Цей файл це збірка функцій по обробці тексту
@@ -17,7 +23,6 @@ macro _realloc _pMem, _size{
   pop ecx
   invoke LocalReAlloc, eax, ecx, LPTR
 }
-
 
 macro _free _pMem{
   invoke LocalHandle, _pMem
@@ -58,10 +63,20 @@ endp
 
 proc strcopy, _str, _buf, _bufsize
 
+  ; IN:
+  ; _str - рядок який потрібно скопіювати
+  ; _buf - буфер куди буде скопійовано. Якщо він дорівнює нулю, тоді виділяється пам'ять розміром рядка
+  ; _bufsize - розмір буфера
+  
+  ; OUT:
+  ; EAX - out string
+
+  ; USED: EAX EBX EDX ESI EDI
+  mov esi, [_str]
+  
   cmp [_buf], 0
   je .newBuf
 
-  mov esi, [_str]
   mov edi, [_buf]
 
   mov edx, [_bufsize]

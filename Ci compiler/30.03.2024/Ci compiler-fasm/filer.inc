@@ -80,15 +80,22 @@ proc closeFile, fileSt
 ret
 endp
 
-proc getByteFile, _stFile
+proc getByteFile uses ebx esi, _stFile
 
   ; читаЇ 1 байт з файлу, та перем≥щуЇ вказ≥вник в перед на 1
 
   mov esi, [_stFile]
   
+  mov eax, dword[esi + 4*4] ; indexFile
+  cmp eax, dword[esi + 4*2] ; indexFile > fileSize
+  jna @f
+    xor eax, eax ; д≥йшли до к≥нц€ - return 0
+    jmp .exit
+  @@:
+  
   mov eax, [esi + 4*1] ; pMem
   mov ebx, [esi + 4*3] ; indexKlaster
-  mov al, byte[eax + ebx]
+  movzx eax, byte[eax + ebx]
   push eax
   
   inc dword[esi + 4*3] ; indexKlaster
@@ -101,6 +108,7 @@ proc getByteFile, _stFile
   @@:
 
   pop eax
+  .exit:
   ; return al
 ret
 endp
@@ -127,5 +135,22 @@ proc retByteFile, _stFile
   
   .exit:
   
+ret
+endp
+
+proc getEOF, _stFile
+  
+  ; return:
+  ; EAX = 1 - can read, is not end file
+  ; EAX = 0 - can't read, is end file
+  
+  mov esi, [_stFile]
+  
+  mov eax, true
+  mov eax, dword[esi + 4*4] ; indexFile
+  cmp eax, dword[esi + 4*2] ; indexFile > fileSize
+  jna @f
+    xor eax, eax ; д≥йшли до к≥нц€ - return 0
+  @@:
 ret
 endp

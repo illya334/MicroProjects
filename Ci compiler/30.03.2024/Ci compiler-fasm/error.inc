@@ -1,3 +1,9 @@
+;    /  -----------  \
+;  /      zeq52giw     \
+; <   ---------------   >
+;  \                  /
+;    \  -----------  /
+
 ; By zeq52giw 30.03.2024
 
 error.winapi:
@@ -12,3 +18,9 @@ error.lexer:
 invoke printf, error.textLexer, eax
 invoke getch
 invoke ExitProcess, 1
+
+error.getLastError:
+invoke GetLastError
+invoke printf, error.testErrorText, eax
+invoke getch
+ret

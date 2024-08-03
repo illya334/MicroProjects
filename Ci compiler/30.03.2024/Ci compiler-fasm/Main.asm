@@ -6,12 +6,24 @@
 
 ; Це спроба розробити цей компілятор на ассемблері FASM.
 
+; TODO - пам'ятка, що зробити.
+; LTDI - lazy to do it (ленивий, щоб зробити це) - зазвичай буду ставити такі мітки на місця де можна оптимізувати програму, або це критичний код який працює тільки на потужних ПК,
+;         але через те, що довго над цією проблемою б'юся - без результатно, залишаю останій робочий варіант.
+
+; Посилання на LTDI:
+;  lexer.inc: createTocken
+
+; TODO: зробити щось типо розширення, наприклад основна задача - це дозволити без особливих проблем змінювати оптимізатор, щоб кожен міг його переробити як йому завгодно.
+
+; FATAL ERROR: Невідома помилка при використанні виділеної пам'яті у createTocken! 
+
 format PE Console 4.0
 entry Start
 
 include 'win32a.inc'
 
 include 'structs.inc'
+
 
 section '.data' data readable writeable
 
@@ -31,7 +43,8 @@ Start:
   stdcall readFile, fileIn
   stdcall closeFile, fileIn
 
-  ;stdcall lexer
+  nop
+  stdcall lexer
 
   ;invoke printf, text, eax, [fileIn.pMem]
   invoke getch
